@@ -13,6 +13,8 @@ import {
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { CreateTodoDTO } from './dto/create-todo.dto';
+import { Todo } from './todo.entity';
+import { UpdateTodoDTO } from './dto/update-todo.dto';
 
 @Controller('todos')
 export class TodoController {
@@ -21,7 +23,7 @@ export class TodoController {
   // Create a todo
   @Post('/')
   async create(@Res() res, @Body() createTodoDTO: CreateTodoDTO) {
-    const newTodo = await this.todoService.addTodo(createTodoDTO);
+    const newTodo = await this.todoService.createTodo(createTodoDTO);
     return res.status(HttpStatus.OK).json({
       message: 'Todo has been submitted successfully!',
       todo: newTodo,
@@ -29,9 +31,9 @@ export class TodoController {
   }
 
   // Fetch a particular todo using ID
-  @Get('/:todoID')
-  async getTodo(@Res() res, @Param('todoID') todoID) {
-    const todo = await this.todoService.getTodo(todoID);
+  @Get('/:id')
+  async getTodo(@Res() res, @Param('id') todoID) {
+    const todo = await this.todoService.findOne(todoID);
     if (!todo) {
       throw new NotFoundException('Todo does not exist!');
     }
@@ -41,18 +43,18 @@ export class TodoController {
   // Fetch all todos
   @Get('/')
   async getTodos(@Res() res) {
-    const todos = await this.todoService.getTodos();
+    const todos = await this.todoService.findAll();
     return res.status(HttpStatus.OK).json(todos);
   }
 
   // Edit a particular todo using ID
-  @Put('/')
+  @Put('/:id')
   async editTodo(
     @Res() res,
-    @Query('todoID') todoID,
-    @Body() createTodoDTO: CreateTodoDTO,
+    @Param('id') id: number,
+    @Body() todo: UpdateTodoDTO,
   ) {
-    const editedTodo = await this.todoService.editTodo(todoID, createTodoDTO);
+    const editedTodo = await this.todoService.update(id, todo);
     if (!editedTodo) {
       throw new NotFoundException('Todo does not exist!');
     }
@@ -62,16 +64,18 @@ export class TodoController {
     });
   }
 
-  // Delete a todo using ID
-  @Delete('/delete')
-  async deleteTodo(@Res() res, @Query('todoID') todoID) {
-    const deletedTodo = await this.todoService.deleteTodo(todoID);
-    if (!deletedTodo) {
+  //Delete a todo using ID
+  @Delete(':id')
+  async deleteTodo(@Res() res, @Param('id') id: number) {
+    const todo = await this.todoService.findOne(id);
+    if (!todo) {
       throw new NotFoundException('Todo does not exist!');
     }
+
+    await this.todoService.delete(id);
     return res.status(HttpStatus.OK).json({
       message: 'Todo has been deleted!',
-      todo: deletedTodo,
+      todo: todo,
     });
   }
 }

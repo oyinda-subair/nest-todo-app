@@ -19,7 +19,7 @@ const envFilePath: string = getEnvPath(`${__dirname}/common/envs`);
     TodoModule,
     ApiModule,
   ],
-  controllers: [AppController, TodoController],
-  providers: [AppService, TodoService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

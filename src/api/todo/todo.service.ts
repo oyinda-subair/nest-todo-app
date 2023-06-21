@@ -1,57 +1,58 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTodoDTO } from './dto/create-todo.dto';
-
-// Creates a Todo interface to show exactly the attribute of our Todo
-interface Todo {
-  readonly id: number;
-  readonly title: string;
-  readonly description: string;
-  readonly isDone: boolean;
-}
+import { Todo } from './todo.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UpdateTodoDTO } from './dto/update-todo.dto';
 
 @Injectable()
 export class TodoService {
-  // Creates a Todo array with one Todo
-  private todos: Todo[] = [
-    {
-      id: 1,
-      title: 'Test',
-      description: 'This is a test Tod',
-      isDone: true,
-    },
-  ];
+  constructor(
+    @InjectRepository(Todo)
+    private readonly repository: Repository<Todo>,
+  ) {}
 
-// Creates a new todo (Add todo to array)
-  async addTodo(createTodoDTO: CreateTodoDTO): Promise<Todo> {
-    this.todos.push(createTodoDTO);
-
-// return last added item
-    return this.todos.at(-1);
+  /**
+   *
+   * @param body
+   * @returns Todo
+   */
+  // Creates a new todo
+  async createTodo(body: CreateTodoDTO): Promise<Todo> {
+    const todo: Todo = new Todo();
+    todo.title = body.title;
+    todo.description = body.description;
+    todo.isDone = body.isDone;
+    return this.repository.save(todo);
   }
 
-// Returns a single todo with ID
-  async getTodo(todoID: number): Promise<Todo> {
-    const post = this.todos.find((todo) => todo.id === todoID);
-    return post;
+  /**
+   *
+   * @param todoID
+   * @returns Todo
+   */
+  // Returns a single todo with ID
+  async findOne(todoID: number): Promise<Todo> {
+    return this.repository.findOne({ where: { id: todoID } });
   }
 
-// Returns all todos available
-  async getTodos(): Promise<Todo[]> {
-    return this.todos;
+  /**
+   *
+   * @returns Todos[]
+   */
+  // Returns all todos available
+  async findAll(): Promise<Todo[]> {
+    return this.repository.find();
   }
 
-// Deletes a todo by ID and add a new one (Update process)
-  async editTodo(postID: number, createTodoDTO: CreateTodoDTO): Promise<Todo> {
-    await this.deleteTodo(postID);
-    this.todos.push(createTodoDTO);
+  // Deletes a todo by ID and add a new one (Update process)
+  async update(id: number, todo: UpdateTodoDTO): Promise<Todo> {
+    await this.repository.update(id, todo);
 
-// return last added item
-    return this.todos.at(-1);
+    return this.repository.findOne({ where: { id: id } });
   }
 
-// Deletes a todo from the array
-  async deleteTodo(todoID: number): Promise<any> {
-    const todoIndex = this.todos.findIndex((todo) => todo.id === todoID);
-    return this.todos.splice(todoIndex, 1);
+  async delete(id: number): Promise<void> {
+    await this.repository.delete(id);
   }
 }
