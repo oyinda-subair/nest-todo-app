@@ -18,7 +18,7 @@ export class TodoService {
    * @returns Todo
    */
   // Creates a new todo
-  async createTodo(body: CreateTodoDTO): Promise<Todo> {
+  public createTodo(body: CreateTodoDTO): Promise<Todo> {
     const todo: Todo = new Todo();
     todo.title = body.title;
     todo.description = body.description;
@@ -32,7 +32,7 @@ export class TodoService {
    * @returns Todo
    */
   // Returns a single todo with ID
-  async findOne(todoID: number): Promise<Todo> {
+  public findOne(todoID: number): Promise<Todo> {
     return this.repository.findOne({ where: { id: todoID } });
   }
 
@@ -41,7 +41,7 @@ export class TodoService {
    * @returns Todos[]
    */
   // Returns all todos available
-  async findAll(): Promise<Todo[]> {
+  public findAll(): Promise<Todo[]> {
     return this.repository.find();
   }
 
